@@ -55,7 +55,7 @@ Threat matrix: all four rows N/A per design — no RED tasks manufactured; sanit
 - [x] 2.5 [RED] `tests/unit/test_preflight.py` (monkeypatch `shutil.which`): ffmpeg or ffprobe missing → actionable error, abort before downloads (cli-runtime "missing ffmpeg"); Deno missing → warning, continue. AC: fails first.
 - [x] 2.6 [GREEN] `src/albumgrab/preflight.py`: ffmpeg/ffprobe hard check, Deno soft warn. AC: 2.5 green.
 - [x] 2.7 **Live smoke check (verification task)**: 5-minute unauthenticated YT Music browse via `YTMusicCatalog` on real network — search one artist → list albums → `get_album` one album; record result in PR description. AC: real browse chain confirmed end-to-end; no downloads performed; CI equivalent stays mocked (`live` marker skipped). *(PASS 2026-09-15: Daft Punk → 10 albums → "Random Access Memories (Drumless Edition)" 13 tracks, cover + audioPlaylistId present, zero downloads.)*
-- [ ] 2.8 [REFACTOR] ruff clean; coverage ≥80% slice modules; commits `feat: selection parser`, `feat: ytmusicapi catalog adapter`, `feat: preflight checks` (each with its tests).
+- [x] 2.8 [REFACTOR] ruff clean; coverage ≥80% slice modules; commits `feat: selection parser`, `feat: ytmusicapi catalog adapter`, `feat: preflight checks` (each with its tests).
 
 **Slice boundary** — Start: PR 1 merged. Finish: parse/browse/preflight units green + live browse verified. Verify: `uv run pytest` green. Rollback: revert PR 2.
 
