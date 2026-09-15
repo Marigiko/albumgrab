@@ -42,7 +42,7 @@ Threat matrix: all four rows N/A per design — no RED tasks manufactured; sanit
 - [x] 1.3 [GREEN] `src/albumgrab/config.py`: frozen `Config` dataclass, `DEFAULTS`, `load()` + validation, `resolve_output_root()`. AC: 1.2 green; every failure message names the offending key.
 - [x] 1.4 [RED] `tests/unit/test_layout.py` invariant-pinned: invalid + control chars → `_`; reserved device names (case-insensitive) suffixed `_`; >120 chars truncated; trailing dots/spaces stripped; empty → `untitled`; `NN` prefix and `.mp3` never altered; `build_track_path` → `{output}/{artist}/{album}/03 - Song.mp3`; `ensure_album_dir` creates missing dirs (tmp_path). AC: fails first.
 - [x] 1.5 [GREEN] `src/albumgrab/layout.py`: `sanitize_segment`, `build_track_path`, `ensure_album_dir(mkdir(parents=True, exist_ok=True))`. AC: 1.4 green — library-layout scenarios L1–L5 pass.
-- [ ] 1.6 [REFACTOR] `uv run ruff check .` clean; `uv run pytest --cov` ≥80% on slice modules; commit `feat: scaffold albumgrab package` + `feat: config and layout pure modules` (tests with code).
+- [x] 1.6 [REFACTOR] `uv run ruff check .` clean; `uv run pytest --cov` ≥80% on slice modules; commit `feat: scaffold albumgrab package` + `feat: config and layout pure modules` (tests with code).
 
 **Slice boundary** — Start: empty repo. Finish: installable package, config + layout pure modules green. Verify: `uv run pytest` green. Rollback: revert PR 1.
 
