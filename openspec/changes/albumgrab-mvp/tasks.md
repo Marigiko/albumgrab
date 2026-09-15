@@ -48,13 +48,13 @@ Threat matrix: all four rows N/A per design — no RED tasks manufactured; sanit
 
 ## Phase 2 [Slice 2 — PR 2]: Selection Parsing + Discovery + Preflight
 
-- [ ] 2.1 [RED] `tests/unit/test_selection.py` — all 7 album-selection scenarios: single number; inclusive range "2-5"; mixed "1,3-5,5,7" dedup once each; "all" case-insensitive; out-of-range "9"; garbage "1,x,2" names "x"; inverted "5-2". AC: fails first; asserts `InvalidSelection(token)`.
-- [ ] 2.2 [GREEN] `src/albumgrab/selection.py`: `parse_selection(raw, count) -> list[int]` raising `InvalidSelection(token)`, union + dedup, sorted. AC: 2.1 green.
-- [ ] 2.3 [RED] `tests/unit/test_discovery.py` with recorded ytmusicapi payload fixtures (no network): payload → `Artist`/`AlbumRef` (title, year, trackCount)/`Album` (tracks[], audio_playlist_id, cover_url) mapping; no-match search → `None`. AC: fails first.
-- [ ] 2.4 [GREEN] `src/albumgrab/discovery.py`: metadata dataclasses + `Catalog` protocol + `YTMusicCatalog` (`search_artist`, `list_albums`, `get_album`) per design interfaces. AC: 2.3 green; unit tests hit no network.
-- [ ] 2.5 [RED] `tests/unit/test_preflight.py` (monkeypatch `shutil.which`): ffmpeg or ffprobe missing → actionable error, abort before downloads (cli-runtime "missing ffmpeg"); Deno missing → warning, continue. AC: fails first.
-- [ ] 2.6 [GREEN] `src/albumgrab/preflight.py`: ffmpeg/ffprobe hard check, Deno soft warn. AC: 2.5 green.
-- [ ] 2.7 **Live smoke check (verification task)**: 5-minute unauthenticated YT Music browse via `YTMusicCatalog` on real network — search one artist → list albums → `get_album` one album; record result in PR description. AC: real browse chain confirmed end-to-end; no downloads performed; CI equivalent stays mocked (`live` marker skipped).
+- [x] 2.1 [RED] `tests/unit/test_selection.py` — all 7 album-selection scenarios: single number; inclusive range "2-5"; mixed "1,3-5,5,7" dedup once each; "all" case-insensitive; out-of-range "9"; garbage "1,x,2" names "x"; inverted "5-2". AC: fails first; asserts `InvalidSelection(token)`.
+- [x] 2.2 [GREEN] `src/albumgrab/selection.py`: `parse_selection(raw, count) -> list[int]` raising `InvalidSelection(token)`, union + dedup, sorted. AC: 2.1 green.
+- [x] 2.3 [RED] `tests/unit/test_discovery.py` with recorded ytmusicapi payload fixtures (no network): payload → `Artist`/`AlbumRef` (title, year, trackCount)/`Album` (tracks[], audio_playlist_id, cover_url) mapping; no-match search → `None`. AC: fails first.
+- [x] 2.4 [GREEN] `src/albumgrab/discovery.py`: metadata dataclasses + `Catalog` protocol + `YTMusicCatalog` (`search_artist`, `list_albums`, `get_album`) per design interfaces. AC: 2.3 green; unit tests hit no network.
+- [x] 2.5 [RED] `tests/unit/test_preflight.py` (monkeypatch `shutil.which`): ffmpeg or ffprobe missing → actionable error, abort before downloads (cli-runtime "missing ffmpeg"); Deno missing → warning, continue. AC: fails first.
+- [x] 2.6 [GREEN] `src/albumgrab/preflight.py`: ffmpeg/ffprobe hard check, Deno soft warn. AC: 2.5 green.
+- [x] 2.7 **Live smoke check (verification task)**: 5-minute unauthenticated YT Music browse via `YTMusicCatalog` on real network — search one artist → list albums → `get_album` one album; record result in PR description. AC: real browse chain confirmed end-to-end; no downloads performed; CI equivalent stays mocked (`live` marker skipped). *(PASS 2026-09-15: Daft Punk → 10 albums → "Random Access Memories (Drumless Edition)" 13 tracks, cover + audioPlaylistId present, zero downloads.)*
 - [ ] 2.8 [REFACTOR] ruff clean; coverage ≥80% slice modules; commits `feat: selection parser`, `feat: ytmusicapi catalog adapter`, `feat: preflight checks` (each with its tests).
 
 **Slice boundary** — Start: PR 1 merged. Finish: parse/browse/preflight units green + live browse verified. Verify: `uv run pytest` green. Rollback: revert PR 2.
