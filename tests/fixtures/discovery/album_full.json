@@ -1,0 +1,42 @@
+{
+ "title": "KID A MNESIA",
+ "year": "2021",
+ "trackCount": 34,
+ "audioPlaylistId": "OLAK5uy_m8Yan_MSAia_ZYmZpl6xm1AINDg8LF1NI",
+ "thumbnails": [
+  {
+   "url": "https://yt3.googleusercontent.com/xKX7vViVFA060KCM-JtJSpGBI3o-pt45fL1Nrl1WaOr0GVfdlcEeDyyAKnHF3-Urh0T36n0bx50_Woc=w60-h60-l90-rj",
+   "width": 60,
+   "height": 60
+  },
+  {
+   "url": "https://yt3.googleusercontent.com/xKX7vViVFA060KCM-JtJSpGBI3o-pt45fL1Nrl1WaOr0GVfdlcEeDyyAKnHF3-Urh0T36n0bx50_Woc=w120-h120-l90-rj",
+   "width": 120,
+   "height": 120
+  },
+  {
+   "url": "https://yt3.googleusercontent.com/xKX7vViVFA060KCM-JtJSpGBI3o-pt45fL1Nrl1WaOr0GVfdlcEeDyyAKnHF3-Urh0T36n0bx50_Woc=w226-h226-l90-rj",
+   "width": 226,
+   "height": 226
+  },
+  {
+   "url": "https://yt3.googleusercontent.com/xKX7vViVFA060KCM-JtJSpGBI3o-pt45fL1Nrl1WaOr0GVfdlcEeDyyAKnHF3-Urh0T36n0bx50_Woc=w544-h544-l90-rj",
+   "width": 544,
+   "height": 544
+  }
+ ],
+ "tracks": [
+  {
+   "videoId": "d9zk2j3JPK4",
+   "title": "Everything In Its Right Place",
+   "isAvailable": true,
+   "trackNumber": 1
+  },
+  {
+   "videoId": "TOfU3wVpwZQ",
+   "title": "Kid A",
+   "isAvailable": true,
+   "trackNumber": 2
+  }
+ ]
+}
