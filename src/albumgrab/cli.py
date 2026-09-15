@@ -9,12 +9,12 @@ from typing import Annotated
 
 import typer
 
+from albumgrab.config import DEFAULT_OUTPUT_ROOT
+
 app = typer.Typer(
     help="Download YouTube Music albums as tagged MP3 files.",
     no_args_is_help=True,
 )
-
-DEFAULT_OUTPUT = "./albumgrab-music"
 
 
 @app.command()
@@ -27,7 +27,7 @@ def main(
     ] = None,
 ) -> None:
     """Grab every track of the selected albums as tagged MP3s."""
-    dest = output or Path(DEFAULT_OUTPUT)
+    dest = output or Path(DEFAULT_OUTPUT_ROOT)
     typer.echo(f"albumgrab: '{artist}' -> {dest} (pipeline arrives in Slice 3)")
 
 
