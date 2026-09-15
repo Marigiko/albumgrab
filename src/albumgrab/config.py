@@ -1,15 +1,15 @@
 """Configuration loading for albumgrab (Slice 1 pure module).
 
 Reads ``config.toml`` from the XDG config directory. A missing file yields
-built-in defaults; unknown keys/sections and invalid values raise
-``ConfigError`` naming the offending key (closed schema per cli-runtime spec).
+``DEFAULTS``; unknown keys and invalid values raise ``ConfigError`` naming
+the offending key (closed schema per cli-runtime spec).
 """
 
 from __future__ import annotations
 
 import os
 import tomllib
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 
 DEFAULT_OUTPUT_ROOT = "./albumgrab-music"
@@ -20,51 +20,31 @@ class ConfigError(Exception):
 
 
 @dataclass(frozen=True)
-class DownloadConfig:
+class Config:
+    """Fully resolved configuration; config.toml sections flattened."""
+
     sleep_interval: float = 1.0
     max_sleep_interval: float = 3.0
     retries: int = 3
     backoff_base: float = 2.0
-
-
-@dataclass(frozen=True)
-class YoutubeConfig:
     player_client: tuple[str, ...] = ("android", "ios", "web_music")
     cookies_file: str = ""
-
-
-@dataclass(frozen=True)
-class BinariesConfig:
     ffmpeg: str = ""
+    output_root: str = ""
 
 
-@dataclass(frozen=True)
-class OutputConfig:
-    root: str = ""
+DEFAULTS = Config()
 
-
-@dataclass(frozen=True)
-class Config:
-    download: DownloadConfig = field(default_factory=DownloadConfig)
-    youtube: YoutubeConfig = field(default_factory=YoutubeConfig)
-    binaries: BinariesConfig = field(default_factory=BinariesConfig)
-    output: OutputConfig = field(default_factory=OutputConfig)
-
-
-# Closed schema: section name -> (dataclass, {field: accepted value types}).
-_SCHEMA: dict[str, tuple[type, dict[str, tuple[type, ...]]]] = {
-    "download": (
-        DownloadConfig,
-        {
-            "sleep_interval": (int, float),
-            "max_sleep_interval": (int, float),
-            "retries": (int,),
-            "backoff_base": (int, float),
-        },
-    ),
-    "youtube": (YoutubeConfig, {"player_client": (list,), "cookies_file": (str,)}),
-    "binaries": (BinariesConfig, {"ffmpeg": (str,)}),
-    "output": (OutputConfig, {"root": (str,)}),
+# Closed schema: dotted "section.key" -> accepted value types.
+_KEY_TYPES: dict[str, tuple[type, ...]] = {
+    "download.sleep_interval": (int, float),
+    "download.max_sleep_interval": (int, float),
+    "download.retries": (int,),
+    "download.backoff_base": (int, float),
+    "youtube.player_client": (list,),
+    "youtube.cookies_file": (str,),
+    "binaries.ffmpeg": (str,),
+    "output.root": (str,),
 }
 
 
@@ -76,50 +56,38 @@ def default_config_path() -> Path:
 
 
 def load(config_path: Path | None = None) -> Config:
-    """Load the configuration; a missing file yields built-in defaults."""
+    """Load the configuration; a missing file yields ``DEFAULTS``."""
     path = default_config_path() if config_path is None else config_path
     if not path.is_file():
-        return Config()
+        return DEFAULTS
     raw = tomllib.loads(path.read_text(encoding="utf-8"))
-    sections: dict[str, object] = {}
-    for name, (cls, fields) in _SCHEMA.items():
-        table = raw.get(name, {})
+    values: dict[str, object] = {}
+    for section, table in raw.items():
         if not isinstance(table, dict):
-            raise ConfigError(f"config section [{name}] must be a table")
-        clean: dict[str, object] = {}
+            raise ConfigError(f"config section [{section}] must be a table")
         for key, value in table.items():
-            if key not in fields:
-                raise ConfigError(f"unknown config key '{name}.{key}'")
-            _validate_value(name, key, value, fields[key])
-            clean[key] = tuple(value) if key == "player_client" else value
-        sections[name] = cls(**clean)
-    for name in raw:
-        if name not in _SCHEMA:
-            raise ConfigError(f"unknown config section '[{name}]'")
-    return Config(**sections)
+            dotted = f"{section}.{key}"
+            if dotted not in _KEY_TYPES:
+                raise ConfigError(f"unknown config key '{dotted}'")
+            _check_value(dotted, value)
+            field = "output_root" if key == "root" else key
+            values[field] = tuple(value) if key == "player_client" else value
+    return Config(**values)
 
 
 def resolve_output_root(cli_output: str | None, config: Config) -> Path:
     """Resolve the output root: CLI flag > [output] root > ./albumgrab-music."""
     if cli_output:
         return Path(cli_output)
-    if config.output.root:
-        return Path(config.output.root)
+    if config.output_root:
+        return Path(config.output_root)
     return Path(DEFAULT_OUTPUT_ROOT)
 
 
-def _validate_value(
-    section: str, key: str, value: object, allowed: tuple[type, ...]
-) -> None:
-    """Reject values of the wrong type; bool never counts as a number."""
-    valid = not isinstance(value, bool) and isinstance(value, allowed)
-    if key == "player_client":
+def _check_value(dotted_key: str, value: object) -> None:
+    """Reject wrong-typed values; bool never counts as a number."""
+    valid = not isinstance(value, bool) and isinstance(value, _KEY_TYPES[dotted_key])
+    if dotted_key.endswith("player_client"):
         valid = valid and all(isinstance(item, str) for item in value)
     if not valid:
-        expected = "list of strings" if key == "player_client" else " or ".join(
-            t.__name__ for t in allowed
-        )
-        raise ConfigError(
-            f"invalid value for config key '{section}.{key}': {value!r} "
-            f"(expected {expected})"
-        )
+        raise ConfigError(f"invalid value for config key '{dotted_key}': {value!r}")

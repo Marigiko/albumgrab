@@ -14,14 +14,14 @@ from albumgrab.config import ConfigError, load, resolve_output_root
 
 def test_missing_config_file_yields_defaults(tmp_path: Path) -> None:
     config = load(tmp_path / "missing" / "config.toml")
-    assert config.download.sleep_interval == 1.0
-    assert config.download.max_sleep_interval == 3.0
-    assert config.download.retries == 3
-    assert config.download.backoff_base == 2.0
-    assert config.youtube.player_client == ("android", "ios", "web_music")
-    assert config.youtube.cookies_file == ""
-    assert config.binaries.ffmpeg == ""
-    assert config.output.root == ""
+    assert config.sleep_interval == 1.0
+    assert config.max_sleep_interval == 3.0
+    assert config.retries == 3
+    assert config.backoff_base == 2.0
+    assert config.player_client == ("android", "ios", "web_music")
+    assert config.cookies_file == ""
+    assert config.ffmpeg == ""
+    assert config.output_root == ""
 
 
 def test_xdg_config_home_is_honored(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -29,14 +29,12 @@ def test_xdg_config_home_is_honored(tmp_path: Path, monkeypatch: pytest.MonkeyPa
     config_dir = tmp_path / "albumgrab"
     config_dir.mkdir()
     (config_dir / "config.toml").write_text(
-        "[download]\nsleep_interval = 5.0\nretries = 7\n",
-        encoding="utf-8",
+        "[download]\nsleep_interval = 5.0\nretries = 7\n", encoding="utf-8"
     )
     config = load()
-    assert config.download.sleep_interval == 5.0
-    assert config.download.retries == 7
-    # Keys absent from the file keep their defaults.
-    assert config.download.backoff_base == 2.0
+    assert config.sleep_interval == 5.0
+    assert config.retries == 7
+    assert config.backoff_base == 2.0  # keys absent from the file keep defaults
 
 
 def test_unknown_key_rejected_naming_key(tmp_path: Path) -> None:
@@ -60,21 +58,11 @@ def test_invalid_value_rejected_naming_key(tmp_path: Path) -> None:
         load(path)
 
 
-def test_cli_output_flag_wins_over_everything(tmp_path: Path) -> None:
+def test_output_root_precedence_cli_over_config_over_default(tmp_path: Path) -> None:
     path = tmp_path / "config.toml"
     path.write_text(f'[output]\nroot = "{tmp_path / "from-config"}"\n', encoding="utf-8")
     config = load(path)
     cli_root = tmp_path / "from-cli"
     assert resolve_output_root(str(cli_root), config) == cli_root
-
-
-def test_config_root_used_when_no_cli_flag(tmp_path: Path) -> None:
-    path = tmp_path / "config.toml"
-    path.write_text(f'[output]\nroot = "{tmp_path / "from-config"}"\n', encoding="utf-8")
-    config = load(path)
     assert resolve_output_root(None, config) == tmp_path / "from-config"
-
-
-def test_default_output_root_when_neither_cli_nor_config(tmp_path: Path) -> None:
-    config = load(tmp_path / "missing.toml")
-    assert resolve_output_root(None, config) == Path("./albumgrab-music")
+    assert resolve_output_root(None, load(tmp_path / "missing.toml")) == Path("./albumgrab-music")

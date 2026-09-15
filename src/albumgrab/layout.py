@@ -1,8 +1,7 @@
 """Path layout and cross-platform filename sanitization (Slice 1 pure module).
 
-``sanitize_segment`` is invariant-pinned (see tests/unit/test_layout.py): no
-invalid/control chars, non-reserved, <= MAX_SEGMENT_LENGTH, no trailing
-dot/space, never empty. ``ensure_album_dir`` is the module's only I/O.
+``sanitize_segment`` is invariant-pinned (see tests/unit/test_layout.py);
+``ensure_album_dir`` is the module's only I/O.
 """
 
 from __future__ import annotations

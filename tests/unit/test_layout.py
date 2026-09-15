@@ -23,7 +23,7 @@ RESERVED = (
 
 
 def assert_invariant(segment: str) -> None:
-    assert segment, "segment must be non-empty"
+    assert segment
     assert len(segment) <= MAX_SEGMENT_LENGTH
     assert not set(segment) & INVALID
     assert not any(ord(c) < 32 or ord(c) == 127 for c in segment)
@@ -31,45 +31,31 @@ def assert_invariant(segment: str) -> None:
     assert not segment.endswith((" ", "."))
 
 
-def test_invalid_chars_and_control_chars_replaced() -> None:
+def write_album_file(root: Path, title: str) -> Path:
+    path = build_track_path(root, "Artist", "Album", 1, title)
+    ensure_album_dir(path.parent)
+    path.write_bytes(b"")
+    return path
+
+
+def test_invalid_and_control_chars_replaced_and_writable(tmp_path: Path) -> None:
     assert sanitize_segment("a?b:c") == "a_b_c"
     assert sanitize_segment("AC/DC: Greatest\\Hits") == "AC_DC_ Greatest_Hits"
     assert sanitize_segment("Back\x07space\nNew") == "Back_space_New"
-
-
-def test_non_ascii_letters_are_preserved() -> None:
-    assert sanitize_segment("Café Tacvba") == "Café Tacvba"
-    assert sanitize_segment("Sigur Rós") == "Sigur Rós"
-
-
-def test_invalid_chars_result_is_writable(tmp_path: Path) -> None:
-    path = build_track_path(tmp_path, "Artist", "Album", 1, "Who?Made:Who")
-    ensure_album_dir(path.parent)
-    path.write_bytes(b"")
-    assert path.is_file()
+    assert sanitize_segment("Café Tacvba") == "Café Tacvba"  # non-ASCII preserved
+    assert write_album_file(tmp_path, "Who?Made:Who").is_file()
 
 
 def test_reserved_names_suffixed_case_insensitively() -> None:
     assert sanitize_segment("CON") == "CON_"
     assert sanitize_segment("con") == "con_"
     assert sanitize_segment("Lpt1") == "Lpt1_"
+    assert_invariant(sanitize_segment("A" * 117 + "CON"))  # reserved after truncation
 
 
-def test_overlong_segment_truncated_to_cap() -> None:
-    segment = sanitize_segment("L" * 300)
-    assert len(segment) == MAX_SEGMENT_LENGTH
-    assert_invariant(segment)
-
-
-def test_overlong_segment_still_writable(tmp_path: Path) -> None:
-    path = build_track_path(tmp_path, "Artist", "Album", 1, "L" * 300)
-    ensure_album_dir(path.parent)
-    path.write_bytes(b"")
-    assert path.is_file()
-
-
-def test_reserved_name_after_truncation_still_safe() -> None:
-    assert_invariant(sanitize_segment("A" * 117 + "CON"))
+def test_overlong_segment_truncated_and_writable(tmp_path: Path) -> None:
+    assert len(sanitize_segment("L" * 300)) == MAX_SEGMENT_LENGTH
+    assert write_album_file(tmp_path, "L" * 300).is_file()
 
 
 def test_trailing_dots_and_spaces_stripped() -> None:
@@ -85,22 +71,14 @@ def test_empty_segment_becomes_untitled() -> None:
 def test_build_track_path_applies_layout() -> None:
     path = build_track_path(Path("/music"), "Example Artist", "Example Album", 3, "Song")
     assert path == Path("/music/Example Artist/Example Album/03 - Song.mp3")
+    # Sanitized text segments, but NN prefix and .mp3 extension never altered:
+    nasty = build_track_path(Path("/music"), "AC/DC", "CON", 12, "Who?Made:Who")
+    assert nasty.parts[-3:] == ("AC_DC", "CON_", "12 - Who_Made_Who.mp3")
 
 
-def test_build_track_path_sanitizes_but_never_nn_prefix_or_extension() -> None:
-    path = build_track_path(Path("/music"), "AC/DC", "CON", 12, "Who?Made:Who")
-    assert path.parts[-3:] == ("AC_DC", "CON_", "12 - Who_Made_Who.mp3")
-
-
-def test_ensure_album_dir_creates_missing_directories(tmp_path: Path) -> None:
+def test_ensure_album_dir_creates_missing_dirs_idempotently(tmp_path: Path) -> None:
     album_dir = tmp_path / "Artist" / "Album"
     assert not album_dir.exists()
     assert ensure_album_dir(album_dir) == album_dir
-    assert album_dir.is_dir()
-
-
-def test_ensure_album_dir_is_idempotent(tmp_path: Path) -> None:
-    album_dir = tmp_path / "Artist" / "Album"
-    ensure_album_dir(album_dir)
     ensure_album_dir(album_dir)
     assert album_dir.is_dir()
