@@ -1,0 +1,55 @@
+# openspec/config.yaml — SDD configuration for albumgrab
+# Initialized by sdd-init on 2026-09-15. Brand-new project: no source code scaffolded yet.
+
+schema: spec-driven
+
+context: |
+  Project: albumgrab — personal CLI to download complete music albums from YouTube as MP3.
+  Stack (planned, user-approved): Python 3.11+ (uv), ytmusicapi, yt-dlp, ffmpeg (external binary), mutagen, Typer CLI.
+  Architecture: CLI entry point `albumgrab`; flow: artist search -> album listing (YouTube Music) -> multi-select -> yt-dlp download -> ffmpeg MP3 conversion -> mutagen ID3v2 + album art tagging.
+  Testing: pytest (strict TDD) via `uv run pytest`.
+  Style: ruff (line-length 100), Conventional Commits, English artifacts.
+
+# Session preflight (orchestrator-provided, 2026-09-15)
+workflow:
+  execution_mode: auto
+  artifact_store: both # openspec files + engram observations
+  delivery_strategy: auto-chain
+  review_budget_lines: 400
+
+testing:
+  strict_tdd: true
+  detected: 2026-09-15
+  runner: pytest
+  test_command: uv run pytest
+  coverage_command: uv run pytest --cov --cov-report=term-missing
+  notes: >-
+    pytest 8.4.2 detected on system PATH and pytest 9.1.1 provisionable via `uvx pytest`;
+    pytest-cov 7.1.0 available. In-project pytest must still be declared as a dev dependency
+    when pyproject.toml is scaffolded in the planning phase — `uv run pytest` becomes valid then.
+    No project test files exist yet (empty repository).
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Follow existing code patterns
+      - Never commit without Conventional Commits format; no AI attribution
+    tdd: true # RED-GREEN-REFACTOR (strict TDD ecosystem convention)
+    test_command: uv run pytest
+  verify:
+    test_command: uv run pytest
+    build_command: uv build
+    coverage_threshold: 80
+  archive:
+    - Warn before merging destructive deltas
